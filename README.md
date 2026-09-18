@@ -2,6 +2,8 @@
 
 ### Teach a little robot. Discover a big idea.
 
+#### ** Try the Game First! - (https://learning-lab-mrudula.mrudulajethe.chatgpt.site/) ** 
+
 Teachback Lab is a playful **learning-by-teaching adventure for elementary learners**. Children explore a short lesson, explain it to Pip (a curious robot), revise their thinking, and apply the idea in a new situation. Discovery badges and effort stars reward the learning process rather than speed or a high-stakes score.
 
 ![Discovery Island](public/images/science-island.png)
