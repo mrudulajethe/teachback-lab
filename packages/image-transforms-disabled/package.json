@@ -1,0 +1,8 @@
+{
+  "name": "@teachback/image-transforms-disabled",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Explicitly disables unused native image transformations in Teachback Lab tooling.",
+  "main": "index.cjs",
+  "license": "MIT"
+}

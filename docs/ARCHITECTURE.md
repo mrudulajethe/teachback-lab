@@ -11,7 +11,7 @@ flowchart LR
   Session --> D1[(D1 notebook)]
   Routes --> Coach[Coach adapter]
   Coach --> Practice[Authored practice guide]
-  Coach --> OpenAI[Responses API when enabled]
+  Coach --> Gateway[Vercel AI Gateway or direct OpenAI when enabled]
   Routes --> Rewards[Server-checked transfer and rewards]
   Rewards --> D1
 ```

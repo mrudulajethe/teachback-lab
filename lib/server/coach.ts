@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { providerConfig } from "./ai-provider";
 import {
   feedbackSchema,
   feedbackJsonSchema,
@@ -7,23 +8,24 @@ import {
 } from "@/features/teachback/evaluation";
 import type { Mission, Feedback } from "@/features/teachback/missions";
 export function coachMode() {
-  return env.OPENAI_API_KEY && env.ENABLE_AI === "true" ? "ai" : "practice";
+  return providerConfig(env) ? "ai" : "practice";
 }
 export async function evaluate(
   mission: Mission,
   explanation: string,
 ): Promise<Feedback> {
-  if (coachMode() === "practice") return practiceFeedback(mission);
+  const provider = providerConfig(env);
+  if (!provider) return practiceFeedback(mission);
   try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
+    const response = await fetch(provider.url, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${provider.apiKey}`,
         "Content-Type": "application/json",
       },
       signal: AbortSignal.timeout(20000),
       body: JSON.stringify({
-        model: env.OPENAI_MODEL || "gpt-4.1-mini",
+        model: provider.model,
         store: false,
         max_output_tokens: 550,
         instructions:

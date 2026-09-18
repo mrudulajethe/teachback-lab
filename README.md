@@ -6,7 +6,7 @@ Teachback Lab is a playful **learning-by-teaching adventure for elementary learn
 
 ![Discovery Island](public/images/science-island.png)
 
-**Status:** working full-stack MVP for supervised demos. The game, anonymous notebooks, saved badges, transfer questions, and practice feedback work end to end. The live AI adapter is implemented but requires your own server-side API key and explicit enablement; live model behavior has not been validated in this checkout.
+**Status:** working full-stack MVP for supervised demos. The game, anonymous notebooks, saved badges, transfer questions, and practice feedback work end to end. The server supports Vercel AI Gateway (selected for this deployment) and direct OpenAI. A Gateway key is configured, but the first live test returned HTTP 403 `customer_verification_required`: Vercel requires account/card verification. Until that is completed and retested, feedback falls back to the clearly labeled practice guide.
 
 ## The learning loop
 
@@ -114,18 +114,21 @@ docs/                     # Architecture, demo guide, and production roadmap
 Set these values in your local `.env` or as production runtime secrets/settings:
 
 ```dotenv
-OPENAI_API_KEY=your-server-side-key
-OPENAI_MODEL=gpt-4.1-mini
+AI_PROVIDER=vercel
+AI_GATEWAY_API_KEY=your-server-side-gateway-key
+AI_GATEWAY_MODEL=openai/gpt-4.1-mini
 ENABLE_AI=true
 ```
 
 Never commit the real key, put it in a public browser variable, or enter it in a child-facing screen. `.env` and `.env.*` are ignored; only `.env.example` is committed.
 
-The server sends the mission facts, misconception, and learner explanation to the OpenAI Responses API, with `store: false`. A strict JSON schema and Zod validation constrain the returned feedback. This does not guarantee educational accuracy or eliminate provider-side retention; review provider policies before real learner use. The app itself never stores raw explanations or generated feedback in D1.
+The server sends the mission facts, misconception, and learner explanation through Vercel AI Gateway’s Responses-compatible endpoint, with `store: false`. For direct OpenAI, set `AI_PROVIDER=openai`, `OPENAI_API_KEY`, and `OPENAI_MODEL=gpt-4.1-mini` instead. A strict JSON schema and Zod validation constrain the returned feedback. This does not guarantee educational accuracy or eliminate provider-side retention; review provider policies before real learner use. The app itself never stores raw explanations or generated feedback in D1.
 
 If the provider times out, refuses, returns malformed data, or is unavailable, the response switches to **Practice guide**. The client displays that mode explicitly. Secrets and provider error bodies never reach the child-facing UI.
 
-See the [OpenAI Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs) for the response format used by the adapter.
+Run `npm run test:ai` with a running AI-enabled local server to require actual AI responses (practice fallbacks fail the test). `AI_TEST_REPORT=work/live-ai.json npm run test:ai` saves synthetic responses for human quality review. These calls consume provider credits. Vercel must have an active key and account verification/credits.
+
+See the [Vercel structured outputs guide](https://vercel.com/docs/ai-gateway/sdks-and-apis/openresponses/structured-outputs) and [OpenAI Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs) for the response format used by the adapter.
 
 ## Persistence and privacy
 
@@ -176,5 +179,7 @@ The first four-prototype version is preserved in Git history. The current main a
 - [Architecture and API contracts](docs/ARCHITECTURE.md)
 - [Production roadmap](docs/ROADMAP.md)
 - [Third-party and AI-assistance disclosures](THIRD_PARTY_NOTICES.md)
+- [LGPL resolution and additional license findings](docs/DEPENDENCIES.md)
+- [Detailed demo-video generation prompt](docs/VIDEO_PROMPT.md)
 
 Original app code is not assigned an open-source license by this repository. Dependency licenses remain their respective authors’ licenses. Choose an application license deliberately, considering the hackathon’s submission terms, before advertising this as an open-source project.
