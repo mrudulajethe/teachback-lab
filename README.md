@@ -1,126 +1,180 @@
-# vinext-starter
+# Teachback Lab
 
-A clean full-stack starter running on [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and Drizzle support.
+### Teach a little robot. Discover a big idea.
 
-## Prerequisites
+Teachback Lab is a playful **learning-by-teaching adventure for elementary learners**. Children explore a short lesson, explain it to Pip (a curious robot), revise their thinking, and apply the idea in a new situation. Discovery badges and effort stars reward the learning process rather than speed or a high-stakes score.
 
-- Node.js `>=22.13.0`
-- Portable: Windows, macOS, or Linux; no Bash required
-- Managed Linux: managed Linux runtime with Bash, `flock`, `curl`, `sha256sum`, and GNU `timeout`
-- Git is required only for publishing
+![Discovery Island](public/images/science-island.png)
 
-## Sites Lifecycle
+**Status:** working full-stack MVP for supervised demos. The game, anonymous notebooks, saved badges, transfer questions, and practice feedback work end to end. The live AI adapter is implemented but requires your own server-side API key and explicit enablement; live model behavior has not been validated in this checkout.
 
-The Sites initializer copies the shared starter and selects managed-linux only when `SITES_MANAGED_LINUX_CONTAINER=1`; otherwise it selects portable. It saves the selection only in ignored `.sites-runtime/execution-profile.json`. Both profiles copy/configure first, then use the plugin's separate `install-dependencies.mjs` step to measure installation independently. Edit source under `app/` and follow the Sites skill for installation, preview, builds, and publishing.
+## The learning loop
 
-Whenever reopening or moving a checkout, run `node <plugin-root>/scripts/configure-execution-profile.mjs` before project commands. Profile changes do not alter tracked source or require reinstalling otherwise-valid dependencies; restart an existing preview to use the new selection. Do not commit or upload `.sites-runtime/`.
+1. **Discover:** pick a mystery and explore three short learning notes, with optional read-aloud.
+2. **Teach:** explain the idea to Pip in everyday words. A clue and sentence starter help with the blank page.
+3. **Reflect:** read Pip’s feedback, answer its follow-up by revising your explanation, and try again.
+4. **Transfer:** apply the idea in a different situation. Incorrect choices lead to a clue and another try.
+5. **Celebrate:** earn a badge and up to three effort stars. Return to your notebook later.
 
-This starter does not use `wrangler.jsonc`.
+The first two stars recognize an explanation and a correct transfer answer. A third recognizes a changed, resubmitted explanation. Stars **are not a validated mastery score**. Replaying a mission keeps the best star count; it does not farm additional rewards.
 
-`install:ci` runs `npm ci` once against the shared lockfile, disables parent-workspace discovery, and includes required dev/optional dependencies despite production/omit settings. Sharp defaults to prebuilt binaries unless explicitly configured otherwise. Do not overlap installers.
+### Six launch missions
 
-- **Portable:** Preserve host HOME, npm cache, registry, proxy, temporary paths, retry/concurrency settings, and lifecycle-script policy. Use `--prefer-offline --no-audit --no-fund`.
-- **Managed Linux:** Use the existing project-local HOME/cache/tmp setup and Linux install lock, tarball preflight, and timeout. Restore the image-seeded npm cache only when its lockfile hash matches; retain network fallback. Builds keep their existing timeout. These helpers are not invoked by the portable profile.
+| Mission              | Learning idea                                            | Transfer example            |
+| -------------------- | -------------------------------------------------------- | --------------------------- |
+| The puddle puzzle    | Evaporation and the water cycle                          | A towel drying in sunshine  |
+| The hungry sunflower | Plants make sugar using light, water, and carbon dioxide | A seedling kept in darkness |
+| Light up Pip’s lab   | Closed circuits and electrical energy                    | Opening a switch            |
+| The sneaky shadow    | Objects block light                                      | Moving a flashlight         |
+| The mystery magnet   | Magnets attract certain materials                        | Choosing an iron object     |
+| The picnic problem   | Halves are equal parts                                   | Sharing a sandwich equally  |
 
-`scripts/sites-env.mjs` preserves the caller's HOME, npm cache, proxy, XDG, and temporary-directory configuration while defaulting Wrangler and Miniflare state to the checkout. If npm reports an unwritable cache, select a writable path with `npm_config_cache` for that install. The `dev` and `start` scripts also keep Wrangler logs inside the checkout. Generated `.sites-runtime/` and `.wrangler/` directories are disposable and ignored by Git.
+Younger learners can listen to the notes and dictate their explanation to a grown-up. The app does not record speech. Browser read-aloud depends on the device’s available voices.
 
-On portable, `npm run dev` uses `vinext dev` with HMR, starting at port 5173. Vinext records the running server in ignored `.vinext/` state, rejects an ordinary duplicate launch, and recovers stale state after a stopped process; exactly simultaneous starts can race. Pass `--port <port>` or `--hostname <host>` after `npm run dev --` when needed; keep portable previews on loopback.
+## Quick start
 
-On managed Linux, use `sites-preview start` only for requested browser QA. The project's dev script runs Vite and accepts the supervisor's `--host 0.0.0.0 --port 4173 --strictPort` arguments. The internal browser uses `http://terminal.local:4173/`; it is not a user-facing URL. The supervisor owns the preview lifecycle. The ignored local profile survives the supervisor's cleared process environment.
+**Requirements:** Node.js 24 LTS recommended (minimum 22.18), npm, Git. No API key is required for practice mode.
 
-The portable profile simulates ChatGPT sign-in only for loopback development requests. Visit `/signin-with-chatgpt?return_to=/` to sign in as `local_seedy` (`seedy@sites.test`, display name `Seedy`) and `/signout-with-chatgpt?return_to=/` to sign out. The development cookie preserves that identity across server restarts. Mock auth is disabled in the managed-linux profile and is not included in production builds; hosted authentication remains dispatch-owned.
-
-The Worker uses `vinext/server/fetch-handler`, including Vinext's config-aware image handling. After building, `npm start` runs that Worker locally through Wrangler on `127.0.0.1`, sharing `.wrangler/state` with dev preview and local D1 migrations; it does not deploy the site or simulate sign-in. Use the URL printed by the server. Pass `npm start -- --port <port>` to select a different built-preview port.
-
-Local previews use Miniflare's placeholder `Request.cf` metadata without a network lookup. Set `CLOUDFLARE_CF_FETCH_ENABLED=true` to opt into fetching preview metadata; this setting does not change hosted request metadata.
-
-Local tool usage metrics are disabled by default. Set `WRANGLER_SEND_METRICS=true` to opt in.
-
-## Included Shape
-
-- edit site code under `app/`
-- `app/chatgpt-auth.ts` provides optional dispatch-owned ChatGPT sign-in helpers
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/index.ts` reads the D1 binding from the Cloudflare Worker environment
-- `db/schema.ts` starts intentionally empty
-- `@cloudflare/workers-types` provides Worker types; `cloudflare-env.d.ts` declares optional `DB`/`BUCKET` bindings—update these declarations if binding names change
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Use it as the durable user key; use email and name for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive `oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty `name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by `oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```bash
+git clone https://github.com/mrudulajethe/teachback-lab.git
+cd teachback-lab
+nvm use                     # optional, if you use nvm
+npm ci
+cp .env.example .env
+npm run build               # also generates the local Worker/D1 configuration
+npm run db:migrate:local    # creates the local notebook database
+npm run dev
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+Open the URL printed by the dev server (normally `http://localhost:5173`). Start a mission, write an explanation, revise it, and solve the transfer question. Check **My badges**, then reload: your badge should still be there.
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs optional or required ChatGPT sign-in:
+The local preview simulates the hosting identity for development. It is not production authentication. Local D1 lives in `.wrangler/state/`, is ignored by Git, and is separate from the hosted database.
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use the returned `userId` as the stable user key for user-owned records; do not use email as a durable identifier.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send anonymous visitors through Sign in with ChatGPT.
-- In a Server Component, start sign-in with `<a href={chatGPTSignInPath(returnTo)} target="_top">`. The auth helper module is server-only; do not import it into a Client Component.
-- Do not use `fetch`, XHR, a client-side router, or a framework link that can prefetch the sign-in route. SIWC must start as a top-level navigation.
-- Never request the AuthAPI authorization endpoint directly. The dispatch-owned `/signin-with-chatgpt` route must start the SIWC flow.
-- Use `chatGPTSignOutPath(returnTo)` for browser sign-out links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because they depend on per-request identity headers.
+### Useful commands
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the OAuth cookies, and identity header injection. Do not implement app routes for those reserved paths. Routes that do not import and call the helper remain anonymous-compatible.
+| Command                    | Purpose                                                               |
+| -------------------------- | --------------------------------------------------------------------- |
+| `npm run dev`              | Local interactive development                                         |
+| `npm run build`            | Build browser assets and the Cloudflare Worker                        |
+| `npm start`                | Serve the compiled Worker locally; use its printed URL                |
+| `npm run typecheck`        | Strict TypeScript checking                                            |
+| `npm test`                 | Mission, feedback-validation, privacy-filter, and reward tests        |
+| `npm run test:api`         | Local API integration checks; requires a running practice-mode server |
+| `npm run db:generate`      | Generate a migration after editing the schema                         |
+| `npm run db:migrate:local` | Apply pending migrations to the local database                        |
 
-SIWC establishes identity only; it does not prove workspace membership. Use the Sites hosting platform's access policy controls for workspace-wide restrictions, or enforce explicit server-side membership or allowlist checks.
+`TEST_BASE_URL=http://localhost:8787 npm run test:api` targets another local port. The test script rejects remote hosts, uses synthetic examples, and deletes its test notebooks afterward. Keep `ENABLE_AI=false` for these tests.
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write actions tied to the current ChatGPT user. Leave public content anonymous.
+## Project structure
 
-## Local D1 migrations
-
-For a D1-backed local preview, generate SQL with `npm run db:generate`. Build once through the Sites skill's build entrypoint (or `npm run build` for standalone use) to generate `dist/server/wrangler.json`, rebuilding if bindings change. From the project root, apply each pending migration in order:
-
-```sh
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_example.sql
+```text
+app/
+  page.tsx                  # Small route entrypoint
+  layout.tsx                # Metadata and shared styles
+  globals.css               # Shared UI tokens/utilities
+  product.css               # Game visual system and responsive layouts
+  api/
+    progress/route.ts       # Read/create anonymous notebook; delete notebook
+    teachback/route.ts      # Validate and evaluate a mission explanation
+    complete/route.ts      # Check transfer answer and save best reward
+    coach/route.ts         # Retired prototype endpoint (410)
+components/
+  teachback/
+    teachback-game.tsx      # Island, badges, grown-up view
+    mission-play.tsx        # Discover → explain → reflect → transfer → reward
+  ui/                      # Existing accessible UI primitives
+features/teachback/
+  missions.ts              # Lesson content, facts, misconceptions, transfer items
+  evaluation.ts            # Feedback contract and pure reward/validation helpers
+  use-notebook.ts          # Client API and progress state
+lib/server/
+  coach.ts                 # Server-only AI provider adapter and practice fallback
+  database.ts              # D1 binding access
+  http.ts                  # Bounded request parsing and safe errors
+  session.ts               # Anonymous cookie/session handling
+db/                       # Drizzle schema
+drizzle/                  # Versioned SQL migrations and snapshots
+public/images/            # Original Pip and island artwork
+scripts/                  # Build/runtime helpers and local migration runner
+tests/                    # Domain tests and API smoke test
+docs/                     # Architecture, demo guide, and production roadmap
+.github/workflows/ci.yml   # Automated typecheck, tests, and production build
+.env.example              # Safe, empty environment template
+.openai/hosting.json      # Existing Sites identity and logical DB binding
 ```
 
-Replace the filename with the pending migration and `DB` with your D1 binding name if different. Use `.wrangler/state`, not `.wrangler/state/v3`; Wrangler adds the versioned directories. Do not replay migrations already applied locally. This updates only the preview database; publishing applies production migrations separately.
+## Feedback modes
 
-## Diagnostic Commands
+### Practice mode — works without a key
 
-- `npm run install:ci`: perform the one locked dependency install
-- `npm run dev`: start the Vite/Vinext development server
-- `npm run build`: build the deployable Sites artifact
-- `npm run start`: preview the built Worker locally with D1/R2 support
-- `npm run db:generate`: generate Drizzle migrations after schema changes
+`ENABLE_AI=false` is the default. The app returns authored lesson prompts and a misconception question. It does **not** grade free text, perform keyword-based comprehension scoring, or claim that a model reviewed the learner’s writing. Transfer answers are checked against authored answer keys.
 
-When using the Sites plugin, follow its skill instructions for installation, builds, and publishing. These npm commands remain available for standalone use.
+### Live AI mode — requires server configuration
 
-The portable build runs Vinext directly without a host `timeout` command. The managed-linux build uses `scripts/build-verified.sh` and its existing `SITES_BUILD_TIMEOUT` setting.
+Set these values in your local `.env` or as production runtime secrets/settings:
 
-## Learn More
+```dotenv
+OPENAI_API_KEY=your-server-side-key
+OPENAI_MODEL=gpt-4.1-mini
+ENABLE_AI=true
+```
 
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+Never commit the real key, put it in a public browser variable, or enter it in a child-facing screen. `.env` and `.env.*` are ignored; only `.env.example` is committed.
+
+The server sends the mission facts, misconception, and learner explanation to the OpenAI Responses API, with `store: false`. A strict JSON schema and Zod validation constrain the returned feedback. This does not guarantee educational accuracy or eliminate provider-side retention; review provider policies before real learner use. The app itself never stores raw explanations or generated feedback in D1.
+
+If the provider times out, refuses, returns malformed data, or is unavailable, the response switches to **Practice guide**. The client displays that mode explicitly. Secrets and provider error bodies never reach the child-facing UI.
+
+See the [OpenAI Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs) for the response format used by the adapter.
+
+## Persistence and privacy
+
+- A random, HttpOnly, SameSite cookie links this browser to a notebook. HTTPS adds `Secure`.
+- D1 stores a hash-derived anonymous learner ID, mission completion, best stars, timestamps, and minimal attempt metadata.
+- Explanation hashes distinguish revisions. Raw explanations and AI feedback are not stored in the app database or intentionally logged.
+- Attempt IDs are checked against the current notebook; another browser cannot redeem them.
+- Requests have size/schema checks, same-origin checks, and a per-notebook attempt-rate guard. Public deployment needs additional edge rate limiting.
+- Obvious email addresses and phone numbers are rejected before provider calls. This is a limited heuristic, **not comprehensive PII detection**.
+- **Grown-ups → Clear this notebook** deletes that browser’s progress and attempt records.
+- Clearing browser cookies loses access to the notebook; cross-device accounts and recovery are not implemented.
+- Cookie lifetime is 30 days. Automatic deletion of abandoned server records is not implemented yet; plan a retention job before real child use.
+
+This is a supervised MVP, not a claim of COPPA/FERPA compliance or readiness for unsupervised school deployment. Use synthetic examples for the hackathon. See [the production roadmap](docs/ROADMAP.md) for the remaining work.
+
+## Deployment
+
+The existing deployment uses **Sites on Cloudflare Workers + D1**. `.openai/hosting.json` declares the logical `DB` binding. Keep the existing project ID when updating this deployment; do not replace it to create a second copy accidentally.
+
+1. Run the checks and production build.
+2. Commit the exact source.
+3. Publish that source and its build through Sites. Sites provisions D1 and applies the versioned migrations before uploading the Worker.
+4. Set production secrets separately; local `.env` does not configure hosted secrets.
+5. Verify a complete learning loop and persistent badge in the published version.
+
+For deployment outside Sites, supply your own Cloudflare Worker/D1 configuration, provision the database, apply migrations, bind `DB`, and configure secrets/access controls. The generated local configuration contains a placeholder database ID and must not be treated as production configuration. See [architecture](docs/ARCHITECTURE.md).
+
+## GitHub workflow
+
+This repository is organized for normal GitHub development. The default workflow runs type checking, domain tests, and a production build on pushes and pull requests. It does not deploy or require an API secret.
+
+```bash
+git checkout -b feature/your-change
+# edit files and add meaningful tests
+npm run typecheck
+npm test
+npm run build
+git add <changed-files>
+git commit -m "Describe the behavior change"
+git push -u origin feature/your-change
+```
+
+The first four-prototype version is preserved in Git history. The current main app is Teachback Lab only.
+
+## Demo and next steps
+
+- [Two-minute demo walkthrough](docs/DEMO.md)
+- [Architecture and API contracts](docs/ARCHITECTURE.md)
+- [Production roadmap](docs/ROADMAP.md)
+- [Third-party and AI-assistance disclosures](THIRD_PARTY_NOTICES.md)
+
+Original app code is not assigned an open-source license by this repository. Dependency licenses remain their respective authors’ licenses. Choose an application license deliberately, considering the hackathon’s submission terms, before advertising this as an open-source project.

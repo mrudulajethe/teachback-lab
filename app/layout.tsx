@@ -3,11 +3,9 @@ import "./globals.css";
 import "./product.css";
 
 export const metadata: Metadata = {
-  title: "Learning Lab — Four Learning Experiments",
-  description: "Math, Spanish, reading, and learning by teaching.",
-  other: {
-    "codex-preview": "development",
-  },
+  title: "Teachback Lab — Teach Pip. Discover more.",
+  description:
+    "A playful learning adventure where elementary learners teach a curious robot how the world works.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
