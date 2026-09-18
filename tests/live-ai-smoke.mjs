@@ -5,17 +5,20 @@ import { feedbackSchema } from "../features/teachback/evaluation.ts";
 const base = process.env.TEST_BASE_URL || "http://localhost:5173";
 const url = new URL(base);
 assert.ok(["localhost", "127.0.0.1", "learning-lab-mrudula.mrudulajethe.chatgpt.site"].includes(url.hostname), "Only the local app or this project's deployment may be tested.");
-let cookie = "";
+const cookies = new Map();
 async function api(path, body, method = body ? "POST" : "GET") {
   const response = await fetch(`${url.origin}${path}`, {
     method,
-    headers: { Origin: url.origin, "Content-Type": "application/json", ...(cookie ? {Cookie: cookie} : {}) },
+    headers: { Origin: url.origin, "Content-Type": "application/json", ...(cookies.size ? {Cookie: [...cookies].map(([k,v]) => `${k}=${v}`).join("; ")} : {}) },
     ...(body ? { body: JSON.stringify(body) } : {}),
     signal: AbortSignal.timeout(40000),
     redirect: "error",
   });
-  const setCookie = response.headers.get("set-cookie");
-  if (setCookie) cookie = setCookie.split(";")[0];
+  for (const header of response.headers.getSetCookie()) {
+    const pair = header.split(";")[0];
+    const split = pair.indexOf("=");
+    cookies.set(pair.slice(0, split), pair.slice(split + 1));
+  }
   assert.equal(response.status, 200, `${path}: HTTP ${response.status}`);
   return response.json();
 }
@@ -41,5 +44,8 @@ try {
   if (process.env.AI_TEST_REPORT) writeFileSync(process.env.AI_TEST_REPORT, JSON.stringify({testedAt:new Date().toISOString(), origin:url.origin, results, note:"Synthetic cases only. Review feedback for educational quality; schema success is not accuracy certification."}, null, 2)+"\n");
   console.log(`PASS: ${results.length} real AI responses; no practice fallbacks. Review the synthetic report before making quality claims.`);
 } finally {
-  if (cookie) await api("/api/progress", undefined, "DELETE");
+  if (cookies.has("teachback_session")) {
+    try { await api("/api/progress", undefined, "DELETE"); }
+    catch { console.error("Test notebook cleanup failed; investigate separately."); process.exitCode = 1; }
+  }
 }
